@@ -1,4 +1,12 @@
-use fake::{faker::name::raw::Name, locales::EN, Fake, Faker};
+use fake::{
+    faker::name::raw::*,
+    faker::lorem::raw::*,
+    faker::number::raw::*,
+    faker::internet::raw::*,
+    locales::EN,
+    Fake,
+    Faker
+};
 
 /// Splits a given format string into tokens.
 ///
@@ -79,8 +87,30 @@ pub fn parse(format: &str) -> String {
                 .trim_start_matches('%')
                 .trim_end_matches(|c: char| c.is_ascii_punctuation());
             match token_name {
+                // Lorem
+                "word" => result.push_str(&Word(EN).fake::<String>()),
+
+                // Name
                 "name" => result.push_str(&Name(EN).fake::<String>()),
+                "namewithtitle" => result.push_str(&NameWithTitle(EN).fake::<String>()),
+                "firstname" => result.push_str(&FirstName(EN).fake::<String>()),
+                "lastname" => result.push_str(&LastName(EN).fake::<String>()),
+                "title" => result.push_str(&Title(EN).fake::<String>()),
+                "suffix" => result.push_str(&Suffix(EN).fake::<String>()),
+ 
+                // Number
                 "u32" => result.push_str(&format!("{}", Faker.fake::<u32>())),
+                "digit" => result.push_str(&Digit(EN).fake::<String>()),
+
+                // Internet
+                "freeemailprovider" => result.push_str(&FreeEmailProvider(EN).fake::<String>()),
+                "domainsuffix" => result.push_str(&DomainSuffix(EN).fake::<String>()),
+                "freeemail" => result.push_str(&FreeEmail(EN).fake::<String>()),
+                "safeemail" => result.push_str(&SafeEmail(EN).fake::<String>()),
+                "ipv4" => result.push_str(&IPv4(EN).fake::<String>()),
+                "ipv6" => result.push_str(&IPv6(EN).fake::<String>()),
+
+                // Other
                 _ => result.push_str(&token),
             }
             let punctuation = token
