@@ -13,23 +13,21 @@ fn lexer(format: &str) -> Vec<String> {
                 tokens.push(current_token.clone());
                 current_token.clear();
             }
-            in_token = !in_token;
+            in_token = true;
             current_token.push(c);
         } else if in_token {
-            if c.is_whitespace() {
+            if c.is_whitespace() || c.is_ascii_punctuation() {
                 tokens.push(current_token.clone());
                 current_token.clear();
                 in_token = false;
-                current_token.push(c);
-            } else {
-                current_token.push(c);
             }
+            current_token.push(c);
         } else {
             current_token.push(c);
         }
     }
 
-    if !current_token.is_empty() {
+    if in_token || !current_token.is_empty() {
         tokens.push(current_token);
     }
 
@@ -42,11 +40,14 @@ fn parse(format: &str) -> String {
 
     for token in tokens {
         if token.starts_with("%") {
-            match token.trim_start_matches('%') {
+            let token_name = token.trim_start_matches('%').trim_end_matches(|c: char| c.is_ascii_punctuation());
+            match token_name {
                 "name" => result.push_str(&Name(EN).fake::<String>()),
                 "u32" => result.push_str(&format!("{}", Faker.fake::<u32>())),
                 _ => result.push_str(&token),
             }
+            let punctuation = token.trim_start_matches(|c: char| !c.is_ascii_punctuation()).trim_start_matches('%').trim_start_matches(token_name);
+            result.push_str(punctuation);
         } else {
             result.push_str(&token);
         }
