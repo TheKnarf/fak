@@ -1,6 +1,7 @@
 use clap::Parser;
 use fake::{Fake, Faker, faker::name::raw::Name, locales::EN};
 
+
 fn lexer(format: &str) -> Vec<String> {
     let mut tokens = vec![];
     let mut current_token = String::new();
@@ -8,15 +9,23 @@ fn lexer(format: &str) -> Vec<String> {
 
     for c in format.chars() {
         if c == '%' {
-            if in_token {
+            if !current_token.is_empty() {
                 tokens.push(current_token.clone());
                 current_token.clear();
             }
             in_token = !in_token;
-        } else if in_token {
             current_token.push(c);
+        } else if in_token {
+            if c.is_whitespace() {
+                tokens.push(current_token.clone());
+                current_token.clear();
+                in_token = false;
+                current_token.push(c);
+            } else {
+                current_token.push(c);
+            }
         } else {
-            tokens.push(c.to_string());
+            current_token.push(c);
         }
     }
 
@@ -32,10 +41,14 @@ fn parse(format: &str) -> String {
     let mut result = String::new();
 
     for token in tokens {
-        match token.as_str() {
-            "%name" => result.push_str(&Name(EN).fake::<String>()),
-            "%u32" => result.push_str(&format!("{}", Faker.fake::<u32>())),
-            _ => result.push_str(&token),
+        if token.starts_with("%") {
+            match token.trim_start_matches('%') {
+                "name" => result.push_str(&Name(EN).fake::<String>()),
+                "u32" => result.push_str(&format!("{}", Faker.fake::<u32>())),
+                _ => result.push_str(&token),
+            }
+        } else {
+            result.push_str(&token);
         }
     }
 
